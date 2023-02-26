@@ -1,0 +1,104 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import plotly.express as px
+import matplotlib.pyplot as plt
+df = pd.read_csv('/Users/dilpreetkaursaini/Downloads/FE520/Downloads/SuicidesInIndia2011-2022.csv')
+df.head()
+df.info()
+Rows = df.shape[0]
+Columns = df.shape[1]
+print ( "Number of rows are", Rows)
+print ( "Number of columns are", Columns)
+df.columns
+df['Type_code'].value_counts()
+df["State"].value_counts()
+a = df.loc[df["State"]=="Maharashtra"].reset_index()
+# Series Way of conversion 
+s = a.groupby(["Year","Gender"])["Total"].sum()
+s
+print ( " Indian states where the data is collected from ", df['State'].unique())
+# column Total is number of suicides . 
+# Yearwise sucides. 
+yearwise= df[['Year', 'Total']].groupby('Year').sum()
+yearwise.reset_index(inplace = True)
+#yearwise
+plt.rcParams.update({'font.size': 18})
+plt.figure(figsize= (20,10)) # Make a plot size
+trace = sns.barplot(x = yearwise['Year'], y = yearwise['Total'], data = yearwise)
+# Adding values on the top of the bars
+for index, row in yearwise.iterrows():
+    trace.text(x = row.name, y = row.Total, s = str(row.Total),color='black', ha="center")
+plt.title('Year wise Suicide count')    
+plt.show()
+gender_wise = df[['Year', 'Gender','Total']].groupby(['Year', 'Gender']).sum()
+gender_wise.reset_index(inplace = True)
+plt.rcParams.update({'font.size': 18})
+plt.figure(figsize= (20,10)) # Make a plot size
+plt.title('Yearly Males & Females Sucides rate')
+ax = sns.barplot(x = 'Year', y = 'Total', hue = 'Gender', data = gender_wise)
+plt.show()
+reasons_set = df[df['Type_code'] == 'Causes']
+reasons_set['Type'].value_counts()
+df_StateOTY = pd.DataFrame(df.groupby(["State"])["Total"].sum()).reset_index().sort_values(by='Total')
+
+plt.figure(figsize=(25, 25))
+plt.xticks(rotation=90,fontsize=30)
+plt.yticks(rotation=90,fontsize=30)
+
+ax1 = sns.barplot(x='State', y='Total', data=df_StateOTY)
+ax1.set_xlabel("State",fontsize=30)
+ax1.set_ylabel("Number of Cases",fontsize=30)
+ax1 = plt.title("State vs Number of Cases Over The Years",fontsize=40)
+df_causes = df[df['Type_code']=='Causes']
+print("Total cases from 2011-22: \n",df_causes.groupby("Year")["Total"].sum())
+total_suicide = df_causes.groupby("Year")["Total"]
+plt.figure(figsize=(12,6))
+plt.title("Total number of suicides over the years")
+sns.lineplot(x='Year',y='Total',data=df_causes)
+sns.set(style='dark')
+plt.show()
+filter_state =df.groupby("State")[["State","Total"]].sum().sort_values('Total',ascending=False).head(10)
+plt.figure(figsize=(12,12))
+plt.title("Top 10 States with Highest Rates of suicides",fontsize=15)
+c1 = sns.barplot(x="Total",y=filter_state.index,data=filter_state,palette="Reds_r")
+c1.bar_label(c1.containers[0],size = 10)
+plt.show()
+plt.figure(figsize=(12,12))
+temp = df_causes[['Type','Total']].groupby(['Type']).sum().sort_values('Total',ascending=False).head(10)
+c1 = sns.barplot(y=temp.index,x=temp.Total,palette="Reds_r")
+c1.bar_label(c1.containers[0],size = 10)
+plt.title('Causes vs Total Suicides',fontsize=20)
+plt.xlabel('Total Suicides')
+plt.ylabel('Causes')
+plt.show()
+filter_gender = df.groupby("Gender")[["Gender","Total"]].sum().reset_index()
+c1 = sns.catplot(x="Gender", y="Total", kind="bar", data=filter_gender,palette="Reds_r")
+plt.show()
+plt.savefig("gender_suicide.png")
+grp_year = df.groupby(["Year","Gender"])["Total"].sum()
+grp_year = pd.DataFrame(grp_year).reset_index()
+sns.lmplot(x="Year", y="Total", hue="Gender", data=grp_year,height=8, aspect=11.7/8)
+plt.show()
+plt.savefig("rt_gender_yrs.png")
+filter_social_status = pd.DataFrame(df[df["Type_code"]=="Education_Status"].groupby(["Type","Gender"])["Total"].sum()).reset_index()
+g = sns.catplot(x="Type", y="Total",hue="Gender", kind="bar",palette="Reds_r",data=filter_social_status,height=8, aspect=11.7/8)
+g.set_xticklabels(rotation=90)
+plt.show()
+plt.savefig("educationstatus.png")
+filter_social_status = pd.DataFrame(df[df["Type_code"]=="Professional_Profile"].groupby(["Type","Gender"])["Total"].sum()).reset_index()
+g = sns.catplot(x="Type", y="Total",hue="Gender", kind="bar",palette="Reds_r",data=filter_social_status,height=8, aspect=11.7/8)
+g.set_xticklabels(rotation=90)
+plt.show()
+plt.savefig("profession_gender.png")
+df_means = df[df.Type_code=='Means_adopted']
+df_means.head()
+plt.figure(figsize=(10,6))
+temp = df_means[['Type','Total']].groupby(['Type']).sum().sort_values('Total',ascending=False)
+c1=sns.barplot(y=temp.index,x=temp.Total,palette="Reds_r")
+c1.bar_label(c1.containers[0],fontsize=10)
+plt.title('Means adopted vs Total Suicides',fontsize=18)
+plt.ylabel('Means_adopted')
+plt.xlabel('Total Suicides')
+plt.show()
+plt.savefig("Meansadopt.png")
